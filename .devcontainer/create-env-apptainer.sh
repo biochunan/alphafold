@@ -6,35 +6,37 @@ set -e
 
 CUDA=12.2.2
 
-# sudo locale-gen en_US.UTF-8
+locale-gen en_US.UTF-8
 
-sudo apt-get update
-sudo apt-get install --no-install-recommends -y \
+# Set DEBIAN_FRONTEND to noninteractive to avoid interactive prompts
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+export DEBIAN_FRONTEND=noninteractive
+apt-get install --no-install-recommends -y \
+    \
     build-essential \
     cmake \
     git \
     hmmer \
     kalign \
-    wget
-    # cuda-command-line-tools-12-2 \
-sudo apt-get install tmux parallel nvtop aria2 -y
-sudo rm -rf /var/lib/apt/lists/*
-sudo apt-get autoremove -y
-sudo apt-get clean
+    wget \
+    parallel \
+    aria2
 
 
 # Compile HHsuite from source.
 WD=/tmp
-sudo rm -rf $WD/hh-suite
-sudo mkdir -p $WD/hh-suite
-sudo git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git $WD/hh-suite
-sudo mkdir $WD/hh-suite/build
+rm -rf $WD/hh-suite
+mkdir -p $WD/hh-suite
+git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git $WD/hh-suite
+mkdir $WD/hh-suite/build
 pushd $WD/hh-suite/build
-sudo sudo cmake -DCMAKE_INSTALL_PREFIX=/opt/hhsuite ..
-sudo sudo make -j 4 && sudo make install
-sudo sudo ln -s /opt/hhsuite/bin/* /usr/bin
+cmake -DCMAKE_INSTALL_PREFIX=/opt/hhsuite ..
+make -j 4 && make install
+ln -s /opt/hhsuite/bin/* /usr/bin
 popd
-sudo rm -rf $WD/hh-suite
+rm -rf $WD/hh-suite
 
 
 # Install conda packages
@@ -46,11 +48,10 @@ if ! $(conda info --envs | grep -q $envname); then
 fi
 conda activate $envname
 conda install -y -c conda-forge -n $envname openmm=7.7.0 pdbfixer cudatoolkit
-conda clean --all --force-pkgs-dirs --yes
 
 
 # Add SETUID bit to the ldconfig binary so that non-root users can run it.
-sudo chmod u+s /sbin/ldconfig.real
+chmod u+s /sbin/ldconfig.real
 
 
 # download stereo_chemical_props.txt
@@ -72,3 +73,10 @@ pip install --no-cache-dir ml_dtypes==0.2.0
 
 # install alphafold -e
 pip install -e $BASE
+
+# clean up
+conda clean --all --force-pkgs-dirs --yes
+pip cache purge
+apt autoremove -y
+rm -rf /var/lib/apt/lists/*
+apt-get clean

@@ -2,6 +2,9 @@
 
 # Aim: Create MSAs
 # Input:
+#   - FASTA: path to the fasta file
+#   - OUTDIR: path to the output directory
+#   - WAITPID: PID to wait for
 # Output:
 # Usage:
 # Example:

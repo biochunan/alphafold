@@ -163,3 +163,9 @@ dev
 .vscode/PythonImportHelper-v2-Completion.json
 
 josephine
+out
+links
+mount
+tmp
+experiment
+.devcontainer/alphafold2.3.sif
