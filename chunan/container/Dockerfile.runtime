@@ -82,7 +82,6 @@ RUN conda init zsh && \
 # Copy alphafold
 # ------------------------------------------------------------------------------
 RUN mkdir -p /home/vscode/alphafold/
-COPY --chown=vscode:vscode ./.devcontainer /home/vscode/alphafold/.devcontainer
 COPY --chown=vscode:vscode ./alphafold     /home/vscode/alphafold/alphafold
 COPY --chown=vscode:vscode ./docker        /home/vscode/alphafold/docker
 COPY --chown=vscode:vscode ./docs          /home/vscode/alphafold/docs
