@@ -108,8 +108,8 @@ GENERATE_MSA_ONLY=false
 PREDICT_STRUCTURE_ONLY=false
 COMPRESS=true
 GPUDEVICE="all"
-JACKHMMER_N_CPU=$(nproc)
-HHBLITS_N_CPU=$(nproc)
+JACKHMMER_N_CPU=8  # $(nproc)
+HHBLITS_N_CPU=4    # $(nproc)
 # Parse command line options
 while [[ $# -gt 0 ]]
 do
