@@ -16,21 +16,19 @@
 
 import os
 from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
-from absl import logging
-from alphafold.common import residue_constants
-from alphafold.data import msa_identifiers
-from alphafold.data import parsers
-from alphafold.data import templates
-from alphafold.data.tools import hhblits
-from alphafold.data.tools import hhsearch
-from alphafold.data.tools import hmmsearch
-from alphafold.data.tools import jackhmmer
+
 import numpy as np
+from absl import logging
+
+from alphafold.common import residue_constants
+from alphafold.data import msa_identifiers, parsers, templates
+from alphafold.data.tools import hhblits, hhsearch, hmmsearch, jackhmmer
 
 # Internal import (7716).
 
 FeatureDict = MutableMapping[str, np.ndarray]
 TemplateSearcher = Union[hhsearch.HHSearch, hmmsearch.Hmmsearch]
+NPROC: int = os.cpu_count()  # max number of CPUs available on the system
 
 
 def make_sequence_features(
@@ -125,23 +123,29 @@ class DataPipeline:
                use_small_bfd: bool,
                mgnify_max_hits: int = 501,
                uniref_max_hits: int = 10000,
-               use_precomputed_msas: bool = False):
+               use_precomputed_msas: bool = False,
+               jackhmmer_n_cpu: int = NPROC,
+               hhblits_n_cpu: int = NPROC):
     """Initializes the data pipeline."""
     self._use_small_bfd = use_small_bfd
     self.jackhmmer_uniref90_runner = jackhmmer.Jackhmmer(
         binary_path=jackhmmer_binary_path,
-        database_path=uniref90_database_path)
+        database_path=uniref90_database_path,
+        n_cpu=jackhmmer_n_cpu)
     if use_small_bfd:
       self.jackhmmer_small_bfd_runner = jackhmmer.Jackhmmer(
           binary_path=jackhmmer_binary_path,
-          database_path=small_bfd_database_path)
+          database_path=small_bfd_database_path,
+          n_cpu=jackhmmer_n_cpu)
     else:
       self.hhblits_bfd_uniref_runner = hhblits.HHBlits(
           binary_path=hhblits_binary_path,
-          databases=[bfd_database_path, uniref30_database_path])
+          databases=[bfd_database_path, uniref30_database_path],
+          n_cpu=hhblits_n_cpu)
     self.jackhmmer_mgnify_runner = jackhmmer.Jackhmmer(
         binary_path=jackhmmer_binary_path,
-        database_path=mgnify_database_path)
+        database_path=mgnify_database_path,
+        n_cpu=jackhmmer_n_cpu)
     self.template_searcher = template_searcher
     self.template_featurizer = template_featurizer
     self.mgnify_max_hits = mgnify_max_hits
@@ -219,7 +223,7 @@ class DataPipeline:
           msa_out_path=bfd_out_path,
           msa_format='a3m',
           use_precomputed_msas=self.use_precomputed_msas)
-      bfd_msa = parsers.parse_a3m(hhblits_bfd_uniref_result['a3m'])  # this is simply read the a3m file as string 
+      bfd_msa = parsers.parse_a3m(hhblits_bfd_uniref_result['a3m'])  # this is simply read the a3m file as string
 
     templates_result = self.template_featurizer.get_templates(
         query_sequence=input_sequence,
