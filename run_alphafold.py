@@ -611,7 +611,6 @@ def main(argv):
             use_precomputed_msas=FLAGS.use_precomputed_msas,
             jackhmmer_n_cpu=FLAGS.jackhmmer_n_cpu,
             hhblits_n_cpu=FLAGS.hhblits_n_cpu,
-            jackhmmer_n_cpu=FLAGS.jackhmmer_n_cpu,
         )
     else:
         num_predictions_per_model = 1
