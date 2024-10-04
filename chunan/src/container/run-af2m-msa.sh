@@ -25,6 +25,10 @@ function usage() {
   echo "  --outdir  <path>   : path to the output directory"
   echo "  --waitpid <pid>    : PID to wait for"
   echo "  --data    <path>   : path to the data directory"
+  echo "  --af2_root_dir      | -D : path to the AlphaFold2 root directory"
+  echo "  --jackhmmer_n_cpu   | -J : number of CPUs for jackhmmer, default to 8"
+  echo "  --hhblits_n_cpu     | -H : number of CPUs for hhblits, default to 4"
+  echo "  --max_template_date | -T : maximum template date, default to today; AF2.3 training cutoff date is 2021-09-30"
   echo "  --help, -h         : display this help"
   exit 1
 }
@@ -43,8 +47,9 @@ OUTDIR=$PWD
 WAITPID=""
 DATA=/mnt/data/alphafold
 afRootDir=/home/vscode/alphafold
-jackhmmerNCpu=$(nproc)  # default to max number of CPUs
-hhblitsNCpu=$(nproc)   # default to max number of CPUs
+MAX_TEMPLATE_DATE=$TODAY  # default to today, AF2.3 training cutoff date is 2021-09-30
+jackhmmerNCpu=8  # default to max number of CPUs
+hhblitsNCpu=4    # default to max number of CPUs
 
 # Parse command line options
 while [[ $# -gt 1 ]]; do
@@ -78,6 +83,10 @@ while [[ $# -gt 1 ]]; do
     hhblitsNCpu="$2"
     shift 2
     ;;
+  --max_template_date | -T)
+    MAX_TEMPLATE_DATE="$2"
+    shift 2
+    ;;
   --help | -h)
     usage
     shift # past argument
@@ -103,6 +112,7 @@ echo "  FASTA  : $FASTA"
 echo "  OUTDIR : $OUTDIR"
 echo "  WAITPID: $WAITPID"
 echo "  DATA   : $DATA"
+echo "  MAX_TEMPLATE_DATE: $MAX_TEMPLATE_DATE"
 echo "----------------------------------------"
 echo
 
@@ -128,7 +138,7 @@ mkdir -p $OUTDIR && pushd $OUTDIR
 python $afRootDir/run_alphafold_msa.py \
   --fasta_paths=$FASTA \
   --model_preset=multimer \
-  --max_template_date=$TODAY \
+  --max_template_date=${MAX_TEMPLATE_DATE} \
   --output_dir=$OUTDIR \
   --data_dir=$DATA \
   --bfd_database_path=$DATA/bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt \

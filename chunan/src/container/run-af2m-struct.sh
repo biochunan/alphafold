@@ -26,6 +26,10 @@ function usage() {
   echo "  --fasta   <path>   : path to the HOST fasta file"
   echo "  --outdir  <path>   : path to the HOST output directory"
   echo "  --data    <path>   : path to the HOST data directory"
+  echo "  --af2_root_dir      | -D : path to the AlphaFold2 root directory"
+  echo "  --jackhmmer_n_cpu   | -J : number of CPUs for jackhmmer, default to 8"
+  echo "  --hhblits_n_cpu     | -H : number of CPUs for hhblits, default to 4"
+  echo "  --max_template_date | -T : maximum template date, default to today; AF2.3 training cutoff date is 2021-09-30"
   echo "  --waitpid <pid>    : PID to wait for"
   echo "  --help, -h         : display this help"
   echo ""
@@ -49,8 +53,9 @@ OUTDIR=$PWD
 WAITPID=""
 DATA=/mnt/data/alphafold
 afRootDir=/home/vscode/alphafold
-jackhmmerNCpu=$(nproc)  # default to max number of CPUs
-hhblitsNCpu=$(nproc)    # default to max number of CPUs
+MAX_TEMPLATE_DATE=$TODAY  # default to today, AF2.3 training cutoff date is 2021-09-30
+jackhmmerNCpu=8  # default to 8 CPUs
+hhblitsNCpu=4    # default to 4 CPUs
 
 # Parse command line options
 while [[ $# -gt 1 ]]; do
@@ -82,6 +87,10 @@ while [[ $# -gt 1 ]]; do
     ;;
   --hhblits_n_cpu | -H)
     hhblitsNCpu="$2"
+    shift 2
+    ;;
+  --max_template_date | -T)
+    MAX_TEMPLATE_DATE="$2"
     shift 2
     ;;
   --help | -h)
@@ -122,7 +131,7 @@ fi
 python $afRootDir/run_alphafold.py \
   --fasta_paths=$FASTA \
   --model_preset=multimer \
-  --max_template_date=$TODAY \
+  --max_template_date=${MAX_TEMPLATE_DATE} \
   --output_dir=$OUTDIR \
   --data_dir=$DATA \
   --bfd_database_path=$DATA/bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt \
