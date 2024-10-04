@@ -73,7 +73,7 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh
 RUN mkdir -p /home/vscode/alphafold/
 COPY --chown=vscode:vscode ./.devcontainer /home/vscode/alphafold/.devcontainer
 COPY --chown=vscode:vscode ./alphafold /home/vscode/alphafold/alphafold
-COPY --chown=vscode:vscode ./cmds /home/vscode/alphafold/cmds
+COPY --chown=vscode:vscode ./chunan /home/vscode/alphafold/chunan
 COPY --chown=vscode:vscode ./docker /home/vscode/alphafold/docker
 COPY --chown=vscode:vscode ./docs /home/vscode/alphafold/docs
 COPY --chown=vscode:vscode ./scripts /home/vscode/alphafold/scripts
