@@ -153,3 +153,4 @@ python $afRootDir/run_alphafold_msa.py \
   --jackhmmer_n_cpu=$jackhmmerNCpu \
   --hhblits_n_cpu=$hhblitsNCpu \
   >$OUTDIR/run_msa.log 2>&1
+
