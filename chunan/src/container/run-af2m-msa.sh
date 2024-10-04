@@ -25,6 +25,7 @@ function usage() {
     echo "  --outdir  <path>   : path to the output directory"
     echo "  --waitpid <pid>    : PID to wait for"
     echo "  --data    <path>   : path to the data directory"
+    echo "  --max_template_date <date> : maximum template date, default is today in format e.g. 2021-07-01 (YYYY-MM-DD)"
     echo "  --help, -h         : display this help"
     exit 1
 }
@@ -43,6 +44,7 @@ TODAY=$(date +%Y-%m-%d)  # 2021-07-01
 OUTDIR=$PWD
 WAITPID=""
 DATA=/mnt/data/alphafold
+MAX_TEMPLATE_DATE=$TODAY
 
 # Parse command line options
 while [[ $# -gt 1 ]]
@@ -60,6 +62,9 @@ do
             shift 2;;
         --data)
             DATA="$2"
+            shift 2;;
+        --max_template_date)
+            MAX_TEMPLATE_DATE="$2"
             shift 2;;
         --help|-h)
             usage
@@ -111,7 +116,7 @@ mkdir -p $OUTDIR && pushd $OUTDIR
 python $BASE/run_alphafold_msa.py \
     --fasta_paths=$FASTA \
     --model_preset=multimer \
-    --max_template_date=$TODAY \
+    --max_template_date=${MAX_TEMPLATE_DATE} \
     --output_dir=$OUTDIR \
     --data_dir=$DATA \
     --bfd_database_path=$DATA/bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt \
