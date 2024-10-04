@@ -60,6 +60,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
 # If specified non-root user, add sudo when running e.g. apt-get
 USER $USERNAME
 RUN sudo usermod -aG sudo $USERNAME
+ENV PATH=/miniconda/bin:${PATH}
 
 # ------------------------------------------------------------------------------
 # Install zsh and oh-my-zsh
@@ -68,15 +69,24 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh
     && sudo chsh -s /bin/zsh
 
 # ------------------------------------------------------------------------------
+# Create conda environment
+# ------------------------------------------------------------------------------
+COPY --chown=vscode:vscode ./chunan/container/conda-env-create-env.sh /tmp/conda-env-create-env.sh
+RUN zsh /tmp/conda-env-create-env.sh
+
+# activate conda environment at startup
+RUN conda init zsh && \
+    echo "conda activate alphafold" >> /home/vscode/.zshrc
+
+# ------------------------------------------------------------------------------
 # Copy alphafold
 # ------------------------------------------------------------------------------
 RUN mkdir -p /home/vscode/alphafold/
-COPY --chown=vscode:vscode ./.devcontainer /home/vscode/alphafold/.devcontainer
-COPY --chown=vscode:vscode ./alphafold /home/vscode/alphafold/alphafold
-COPY --chown=vscode:vscode ./chunan /home/vscode/alphafold/chunan
-COPY --chown=vscode:vscode ./docker /home/vscode/alphafold/docker
-COPY --chown=vscode:vscode ./docs /home/vscode/alphafold/docs
-COPY --chown=vscode:vscode ./scripts /home/vscode/alphafold/scripts
+COPY --chown=vscode:vscode ./alphafold     /home/vscode/alphafold/alphafold
+COPY --chown=vscode:vscode ./docker        /home/vscode/alphafold/docker
+COPY --chown=vscode:vscode ./docs          /home/vscode/alphafold/docs
+COPY --chown=vscode:vscode ./scripts       /home/vscode/alphafold/scripts
+
 COPY --chown=vscode:vscode ./LICENSE ./README.md ./requirements.txt \
     ./run_alphafold_msa.py ./run_alphafold.py ./setup.py \
     /home/vscode/alphafold/
@@ -84,10 +94,15 @@ COPY --chown=vscode:vscode ./LICENSE ./README.md ./requirements.txt \
 RUN wget -q -P /home/vscode/alphafold/alphafold/common/ \
   https://git.scicore.unibas.ch/schwede/openstructure/-/raw/7102c63615b64735c4941278d92b554ec94415f8/modules/mol/alg/src/stereo_chemical_props.txt
 
-# ------------------------------------------------------------------------------
-# Create conda environment
-# ------------------------------------------------------------------------------
-RUN /home/vscode/alphafold/.devcontainer/create-env-docker.sh
+# Install af2.3 python package (NOTE: this requires alphafold folder copied into container)
+COPY --chown=vscode:vscode ./chunan/container/conda-env-install-af2.3.sh /tmp/conda-env-install-af2.3.sh
+RUN zsh /tmp/conda-env-install-af2.3.sh --conda_env_name alphafold --af2_root_dir /home/vscode/alphafold
+
+# Entrypoint scripts
+RUN mkdir -p /home/vscode/entrypoint
+COPY --chown=vscode:vscode ./chunan/src/container/run-af2m-msa.sh /home/vscode/entrypoint/run-af2m-msa.sh
+COPY --chown=vscode:vscode ./chunan/src/container/run-af2m-struct.sh /home/vscode/entrypoint/run-af2m-struct.sh
+RUN chmod +x /home/vscode/entrypoint/run-af2m-msa.sh /home/vscode/entrypoint/run-af2m-struct.sh
 
 # ------------------------------------------------------------------------------
 # End of base image
@@ -95,3 +110,6 @@ RUN /home/vscode/alphafold/.devcontainer/create-env-docker.sh
 WORKDIR /home/vscode
 
 ENTRYPOINT [ "zsh" ]
+# other cmd
+# ENTRYPOINT [ "zsh" "/home/vscode/entrypoint/run-af2m-msa.sh" ]
+# ENTRYPOINT [ "zsh" "/home/vscode/entrypoint/run-af2m-struct.sh" ]

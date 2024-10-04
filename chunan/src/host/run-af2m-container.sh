@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# Aim: Initialize the alphafold2-multimer container
+# Aim: Initialize the alphafold2-multimer container to run in the background
 
 # ------------------------------------------------------------------------------
 # FUNCTION
